@@ -1,5 +1,6 @@
-using Catalog.Core.Entities;
 using System.Text.Json;
+using Catalog.Core.Entities;
+using MongoDB.Driver;
 
 namespace Catalog.Infrastructure.Data.Context
 {
@@ -10,12 +11,14 @@ namespace Catalog.Infrastructure.Data.Context
             PropertyNameCaseInsensitive = true
         };
 
-        public static IEnumerable<ProductBrand> GetSeedData()
+        public static IEnumerable<ProductBrand> GetSeedData(IMongoCollection<ProductBrand> brands)
         {
             var path = Path.Combine(AppContext.BaseDirectory, "Data", "SeedData", "brands.json");
             using var stream = File.OpenRead(path);
-            return JsonSerializer.Deserialize<List<ProductBrand>>(stream, Options)
-                   ?? new List<ProductBrand>();
+            var data = JsonSerializer.Deserialize<List<ProductBrand>>(stream, Options)
+                       ?? new List<ProductBrand>();
+            brands.InsertMany(data);
+            return data;
         }
     }
 }
